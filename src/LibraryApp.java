@@ -28,7 +28,7 @@ public class LibraryApp {
                 viewUsers(users);
             }
             if (input == 4) {
-                isRunning = false;
+                System.exit(1);
             }
         }
     }
@@ -51,8 +51,8 @@ public class LibraryApp {
         System.out.println("What would you like to do?: ");
         System.out.println("1. Create a new collection");
         System.out.println("2. View collections");
-        System.out.println("2. Settings");
-        System.out.println("3. logout");
+        System.out.println("3. Settings");
+        System.out.println("4. logout");
         int input = readInt("->", 4);
         if (input == 1){
             userMenu();
@@ -122,9 +122,10 @@ public class LibraryApp {
     }
 
     public static void changeUsername() {
+        System.out.println("Choose a new username: ");
         String newUsername = in.next();
         selectedUser.setUsername(newUsername);
-        System.out.println("Username changed! : " + selectedUser.getUsername());
+        System.out.println("Username changed!  " + selectedUser.getUsername());
         userMenu();
     }
     public static void createCollection(){
