@@ -3,8 +3,10 @@ import java.util.Scanner;
 
 public class LibraryApp {
     public static boolean isRunning;
-    static Scanner in = new Scanner(System.in);
-    static ArrayList<User> users = new ArrayList<User>();
+    private static Scanner in = new Scanner(System.in);
+    private static ArrayList<User> users = new ArrayList<>();
+    private static User selectedUser = null;
+    private static boolean userSet;
 
     public static void main(String[] args) {
         isRunning = true;
@@ -30,31 +32,50 @@ public class LibraryApp {
             }
         }
     }
-
     public static void viewUsers(ArrayList<User> users) {
         for (User each : users)
             System.out.println(each.getUsername());
-        int input = readInt("->", 1);
-        if (input == 1) {
-            mainMenu();
+        programLoop();
         }
-    }
 
-    public static void mainMenu() {
+    public static void mainMenu(){
         clearConsole();
         System.out.println("What would you like to do?: ");
         System.out.println("1. Create a new user");
         System.out.println("2. Log in to current user");
         System.out.println("3. View all users");
         System.out.println("4.Exit program!");
-
     }
 
     public static void userMenu() {
         System.out.println("What would you like to do?: ");
         System.out.println("1. Create a new collection");
         System.out.println("2. View collections");
+        System.out.println("2. Settings");
         System.out.println("3. logout");
+        int input = readInt("->", 4);
+        if (input == 1){
+            userMenu();
+        }if (input == 2){
+            userMenu();
+        }if (input == 3){
+            settingsMenu();
+        }
+        if (input == 4){
+            LogoutUser();
+            userMenu();
+        }
+    }
+    public static void settingsMenu(){
+        System.out.println("Settings:");
+        System.out.println("1. Change username");
+        System.out.println("2. Go back");
+        int input = readInt("->", 4);
+        if (input == 1){
+            changeUsername();
+        }if (input == 2){
+            userMenu();
+        }
     }
 
     public static int readInt(String prompt, int userChoices) {
@@ -79,8 +100,6 @@ public class LibraryApp {
 
     public static void loginUser(ArrayList<User> users) {
         Scanner in = new Scanner(System.in);
-        User selectedUser = null;
-        boolean userSet = false;
         do {
             System.out.println("Please input a user");
             String userSearch = in.next();
@@ -88,21 +107,28 @@ public class LibraryApp {
                 if (user.getUsername().contains(userSearch)) {
                     selectedUser = user;
                     userSet = true;
-                };
+                }
             }
         }while (!userSet) ;
         System.out.println("Welcome " + selectedUser.getUsername());
         userMenu();
-        int input = readInt("->", 1);
-        if(input == 1){
-            // Create a collection
-        }if(input == 2){
-            // view a collection
-        }if(input == 2){
-            selectedUser = null;
-            userSet = false;
-            mainMenu();
-        }
+
+    }
+    public static void LogoutUser() {
+        userSet = false;
+        selectedUser = null;
+        System.out.println("You are now logged out");
+        programLoop();
+    }
+
+    public static void changeUsername() {
+        String newUsername = in.next();
+        selectedUser.setUsername(newUsername);
+        System.out.println("Username changed! : " + selectedUser.getUsername());
+        userMenu();
+    }
+    public static void createCollection(){
+
     }
 }
 
