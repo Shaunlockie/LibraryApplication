@@ -13,9 +13,8 @@ public class LibraryApp {
     private final DBConnector db = new DBConnector("librarydatabase", "root", "password");
 
     public LibraryApp() throws SQLException, ClassNotFoundException {
-        programLoop();
+        isRunning = true;
     }
-
     public void programLoop() throws SQLException {
         while (isRunning) {
             mainMenu();

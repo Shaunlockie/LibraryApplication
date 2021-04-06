@@ -7,11 +7,11 @@ public class DBConnector {
     private Statement sqlStatement;
 
     public DBConnector(String givenDbName, String givenDbUsername, String givenDbPassword) throws ClassNotFoundException, SQLException {
-        Class.forName("com.sql.jdbc.Driver");
+        Class.forName("com.mysql.cj.jdbc.Driver");
         this.dbName = givenDbName;
         this.dbUsername = givenDbUsername;
         this.dbPassword = givenDbPassword;
-        this.sqlConnect = DriverManager.getConnection("jdbc:mysql://localhost:3306/"+givenDbName,givenDbName, givenDbPassword);
+        this.sqlConnect = DriverManager.getConnection("jdbc:mysql://localhost:3306/"+givenDbName,givenDbUsername, givenDbPassword);
         this.sqlStatement = this.sqlConnect.createStatement();
     }
 
