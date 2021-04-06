@@ -2,6 +2,7 @@ import java.util.Scanner;
 
 public class User {
     private String username;
+    public Collection collection;
 
     // create a new user
     public User() {

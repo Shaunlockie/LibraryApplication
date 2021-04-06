@@ -1,19 +1,22 @@
+import java.sql.*;
+import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class LibraryApp {
     public static boolean isRunning;
-    private static Scanner in = new Scanner(System.in);
-    private static ArrayList<User> users = new ArrayList<>();
+    private static final Scanner in = new Scanner(System.in);
+    private static final ArrayList<User> users = new ArrayList<>();
+    private static final ArrayList<String> collections = new ArrayList<>();
     private static User selectedUser = null;
     private static boolean userSet;
+    private final DBConnector db = new DBConnector("librarydatabase", "root", "password");
 
-    public static void main(String[] args) {
-        isRunning = true;
+    public LibraryApp() throws SQLException, ClassNotFoundException {
         programLoop();
     }
 
-    public static void programLoop() {
+    public void programLoop() throws SQLException {
         while (isRunning) {
             mainMenu();
             // pick user
@@ -25,20 +28,25 @@ public class LibraryApp {
                 loginUser(users);
             }
             if (input == 3) {
-                viewUsers(users);
+                viewUsers();
             }
             if (input == 4) {
                 System.exit(1);
             }
         }
     }
-    public static void viewUsers(ArrayList<User> users) {
-        for (User each : users)
-            System.out.println(each.getUsername());
+    public void viewUsers() throws SQLException {
+        String sqlStatement = "SELECT * FROM userAccounts";
+        ResultSet result = db.makeQuery(sqlStatement);
+        while(result.next()){
+            System.out.println(result.getString("username"));
+        }
+        /*for (User each : users)
+            System.out.println(each.getUsername());*/
         programLoop();
         }
 
-    public static void mainMenu(){
+    public void mainMenu(){
         clearConsole();
         System.out.println("What would you like to do?: ");
         System.out.println("1. Create a new user");
@@ -47,7 +55,7 @@ public class LibraryApp {
         System.out.println("4.Exit program!");
     }
 
-    public static void userMenu() {
+    public void userMenu() throws SQLException {
         System.out.println("What would you like to do?: ");
         System.out.println("1. Create a new collection");
         System.out.println("2. View collections");
@@ -55,7 +63,10 @@ public class LibraryApp {
         System.out.println("4. logout");
         int input = readInt("->", 4);
         if (input == 1){
+            Collection col = new Collection();
+            col.createCollection();
             userMenu();
+            col.showCollectionInfo();
         }if (input == 2){
             userMenu();
         }if (input == 3){
@@ -66,7 +77,7 @@ public class LibraryApp {
             userMenu();
         }
     }
-    public static void settingsMenu(){
+    public  void settingsMenu() throws SQLException {
         System.out.println("Settings:");
         System.out.println("1. Change username");
         System.out.println("2. Go back");
@@ -92,13 +103,13 @@ public class LibraryApp {
         return input;
     }
 
-    public static void clearConsole() {
+    public void clearConsole() {
         for (int i = 0; i < 1; i++) {
             System.out.println();
         }
     }
 
-    public static void loginUser(ArrayList<User> users) {
+    public void loginUser(ArrayList<User> users) throws SQLException {
         Scanner in = new Scanner(System.in);
         do {
             System.out.println("Please input a user");
@@ -114,21 +125,21 @@ public class LibraryApp {
         userMenu();
 
     }
-    public static void LogoutUser() {
+    public void LogoutUser() throws SQLException {
         userSet = false;
         selectedUser = null;
         System.out.println("You are now logged out");
         programLoop();
     }
 
-    public static void changeUsername() {
+    public void changeUsername() throws SQLException {
         System.out.println("Choose a new username: ");
         String newUsername = in.next();
         selectedUser.setUsername(newUsername);
         System.out.println("Username changed!  " + selectedUser.getUsername());
         userMenu();
     }
-    public static void createCollection(){
+    public void createCollection(){
 
     }
 }

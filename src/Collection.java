@@ -4,6 +4,7 @@ public class Collection {
      private String name;
      private String desc;
      private int amountOfBooks;
+     private String owner;
      private Scanner in = new Scanner(System.in);
 
      public Collection(){
@@ -16,7 +17,17 @@ public class Collection {
         this.desc = in.nextLine();
         System.out.println("Collection: " + name + "\nDescription: " + desc);
     }
-     // add book to collection
+    public void showCollectionInfo(){
+        System.out.println("Name: " + name);
+        System.out.println("Description: " + desc);
+        System.out.println("Owner: " + owner);
+    }
+     public String getColName(String name){
+         return name;
+     }
+     public void setColName(){
+         this.name = name;
+     }
 
     // delete collection
 
