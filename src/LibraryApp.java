@@ -9,8 +9,8 @@ public class LibraryApp {
     private static final Scanner in = new Scanner(System.in);
     private static final ArrayList<User> users = new ArrayList<>();
     private static final ArrayList<String> collections = new ArrayList<>();
-    private static User selectedUser = null;
-    private static boolean userSet;
+    //private static User selectedUser = null;
+    //private static boolean userSet;
     User u = null;
     private Statement sqlStatement;
 
