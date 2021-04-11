@@ -1,28 +1,29 @@
 import java.sql.*;
 public class DBConnector {
-    private final String dbName;
-    private final String dbUsername;
-    private final String dbPassword;
-    private final Connection sqlConnect;
+    private final String dbName = "librarydatabase";
+    private final String dbUsername = "root";
+    private final String dbPassword = "password";
+    private static Connection con;
+    //private final Connection sqlConnect;
     private Statement sqlStatement;
 
-    public DBConnector(String givenDbName, String givenDbUsername, String givenDbPassword) throws ClassNotFoundException, SQLException {
+    public DBConnector() throws ClassNotFoundException, SQLException {
         Class.forName("com.mysql.cj.jdbc.Driver");
-        this.dbName = givenDbName;
+        /*this.dbName = givenDbName;
         this.dbUsername = givenDbUsername;
         this.dbPassword = givenDbPassword;
-        this.sqlConnect = DriverManager.getConnection("jdbc:mysql://localhost:3306/"+givenDbName,givenDbUsername, givenDbPassword);
-        this.sqlStatement = this.sqlConnect.createStatement();
+        */
+        con = DriverManager.getConnection("jdbc:mysql://localhost:3306/librarydatabase",dbUsername,dbPassword);
+
+        this.sqlStatement = con.createStatement();
     }
 
-    public ResultSet makeQuery(String givenStatement) throws SQLException {
-        setSqlStatement(givenStatement);
-        return sqlStatement.executeQuery(givenStatement);
+
+    public Connection getConn(Statement statement) throws SQLException {
+        return con;
     }
 
-    private void setSqlStatement(String givenStatement) {
-        this.sqlStatement = sqlStatement;
-    }
+
     public String getDbName(){
         return dbName;
     }
