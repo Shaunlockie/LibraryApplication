@@ -11,6 +11,7 @@ public class LibraryApp {
     private static final ArrayList<String> collections = new ArrayList<>();
     private static User selectedUser = null;
     private static boolean userSet;
+    User u = null;
     private Statement sqlStatement;
 
     Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/librarydatabase", "root","password");
@@ -29,7 +30,7 @@ public class LibraryApp {
                 createUser();
             }
             if (input == 2) {
-                ///loginUser(users);
+                loginUser();
             }
             if (input == 3) {
                 viewUsers();
@@ -39,6 +40,35 @@ public class LibraryApp {
             }
         }
     }
+
+    private User loginUser() throws SQLException {
+        System.out.println("Input Username");
+        String userAccountName = in.next();
+        try {
+
+            PreparedStatement prepStatement = con.prepareStatement("SELECT * FROM useraccounts WHERE username = (?)");
+            prepStatement.setString(1, userAccountName);
+            ResultSet r1 = prepStatement.executeQuery();
+            String usernameCounter;
+
+            while (r1.next()) {
+                u = new User();
+                u.setId(r1.getInt("userId"));
+                u.setUsername(r1.getString("username"));
+                u.setEmail(r1.getString("email"));
+                u.setCreatedDate(r1.getDate("createdDate").toLocalDate());
+
+                //System.out.println(u.getId() + " " + u.getUsername()+ " " + u.getEmail()+ " " +  u.getCreatedDate());
+                System.out.println("Welcome: " + u.getUsername());
+            }
+            System.out.println("This is running");
+            userMenu();
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+       return u;
+    }
+
     public void createUser() throws SQLException{
         Scanner in = new Scanner(System.in);
         System.out.println("Please input a username");
@@ -53,9 +83,7 @@ public class LibraryApp {
         prepStatement.setString(2,userEmail);
         prepStatement.setDate(3, Date.valueOf(userDateCreated));
 
-        int newUser = prepStatement.executeUpdate();
-
-
+        prepStatement.executeUpdate();
     }
 
     public void viewUsers() throws SQLException {
@@ -97,14 +125,17 @@ public class LibraryApp {
             userMenu();
         }
     }
-    public  void settingsMenu() throws SQLException {
+    public void settingsMenu() throws SQLException {
         System.out.println("Settings:");
-        System.out.println("1. Change username");
-        System.out.println("2. Go back");
+        System.out.println("1. Change Username");
+        System.out.println("2. Change Email");
+        System.out.println("3. Go back");
         int input = readInt("->", 4);
         if (input == 1){
             changeUsername();
         }if (input == 2){
+            changeEmail();
+        }if(input == 3){
             userMenu();
         }
     }
@@ -129,29 +160,6 @@ public class LibraryApp {
         }
     }
 
-    /*public void loginUser(ArrayList<User> users) throws SQLException {
-        Scanner in = new Scanner(System.in);
-        do {
-            System.out.println("Please input a user");
-            String userSearch = in.next();
-
-            ResultSet result = db.makeQuery("select * from useraccounts where username="+userSearch;);
-            while(result.next()) {
-                System.out.println(result.getString("username") + " " + result.getString("email"));
-                selectedUser = result.getString("username");
-            }
-
-            for (User user : users) {
-                if (user.getUsername().contains(userSearch)) {
-                    selectedUser = user;
-                    userSet = true;
-                }
-            }
-        }while (!userSet) ;
-        System.out.println("Welcome " + selectedUser.getUsername());
-        userMenu();
-
-    }*/
     public void LogoutUser() throws SQLException {
         userSet = false;
         selectedUser = null;
@@ -162,10 +170,26 @@ public class LibraryApp {
     public void changeUsername() throws SQLException {
         System.out.println("Choose a new username: ");
         String newUsername = in.next();
-        selectedUser.setUsername(newUsername);
-        System.out.println("Username changed!  " + selectedUser.getUsername());
+        int updateId = u.getId();
+        PreparedStatement prepStatement = con.prepareStatement("update userAccounts set username=? where userId=?");
+        prepStatement.setString(1,newUsername);
+        prepStatement.setInt(2, updateId);
+        prepStatement.executeUpdate();
+        System.out.println("Username changed!  ");
         userMenu();
     }
+    private void changeEmail() throws SQLException {
+        System.out.println("Choose a new email: ");
+        String newEmail = in.next();
+        int updateId = u.getId();
+        PreparedStatement prepStatement = con.prepareStatement("update userAccounts set email=? where userId=?");
+        prepStatement.setString(1,newEmail);
+        prepStatement.setInt(2, updateId);
+        prepStatement.executeUpdate();
+        System.out.println("Email changed!  ");
+        userMenu();
+    }
+
     public void createCollection(){
 
     }
