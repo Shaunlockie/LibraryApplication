@@ -1,5 +1,6 @@
 import java.sql.*;
 import java.sql.DriverManager;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -10,10 +11,14 @@ public class LibraryApp {
     private static final ArrayList<String> collections = new ArrayList<>();
     private static User selectedUser = null;
     private static boolean userSet;
-    private final DBConnector db = new DBConnector("librarydatabase", "root", "password");
+    private Statement sqlStatement;
+
+    Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/librarydatabase", "root","password");
 
     public LibraryApp() throws SQLException, ClassNotFoundException {
         isRunning = true;
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        this.sqlStatement = con.createStatement();
     }
     public void programLoop() throws SQLException {
         while (isRunning) {
@@ -21,10 +26,10 @@ public class LibraryApp {
             // pick user
             int input = readInt("->", 4);
             if (input == 1) {
-                users.add(new User());
+                createUser();
             }
             if (input == 2) {
-                loginUser(users);
+                ///loginUser(users);
             }
             if (input == 3) {
                 viewUsers();
@@ -34,14 +39,30 @@ public class LibraryApp {
             }
         }
     }
+    public void createUser() throws SQLException{
+        Scanner in = new Scanner(System.in);
+        System.out.println("Please input a username");
+        String userAccountName = in.nextLine();
+
+        System.out.println("Please input a Email");
+        String userEmail = in.nextLine();
+
+        LocalDate userDateCreated = LocalDate.now();
+        PreparedStatement prepStatement = con.prepareStatement("insert into userAccounts (username,email,createdDate)" + "values (?,?,?)");
+        prepStatement.setString(1,userAccountName);
+        prepStatement.setString(2,userEmail);
+        prepStatement.setDate(3, Date.valueOf(userDateCreated));
+
+        int newUser = prepStatement.executeUpdate();
+
+
+    }
+
     public void viewUsers() throws SQLException {
-        String sqlStatement = "SELECT * FROM userAccounts";
-        ResultSet result = db.makeQuery(sqlStatement);
-        while(result.next()){
+        ResultSet result = makeQuery("SELECT * FROM userAccounts");
+        while(result.next()) {
             System.out.println(result.getString("username"));
         }
-        /*for (User each : users)
-            System.out.println(each.getUsername());*/
         programLoop();
         }
 
@@ -108,11 +129,18 @@ public class LibraryApp {
         }
     }
 
-    public void loginUser(ArrayList<User> users) throws SQLException {
+    /*public void loginUser(ArrayList<User> users) throws SQLException {
         Scanner in = new Scanner(System.in);
         do {
             System.out.println("Please input a user");
             String userSearch = in.next();
+
+            ResultSet result = db.makeQuery("select * from useraccounts where username="+userSearch;);
+            while(result.next()) {
+                System.out.println(result.getString("username") + " " + result.getString("email"));
+                selectedUser = result.getString("username");
+            }
+
             for (User user : users) {
                 if (user.getUsername().contains(userSearch)) {
                     selectedUser = user;
@@ -123,7 +151,7 @@ public class LibraryApp {
         System.out.println("Welcome " + selectedUser.getUsername());
         userMenu();
 
-    }
+    }*/
     public void LogoutUser() throws SQLException {
         userSet = false;
         selectedUser = null;
@@ -140,6 +168,14 @@ public class LibraryApp {
     }
     public void createCollection(){
 
+    }
+
+    public ResultSet makeQuery(String givenStatement) throws SQLException {
+        setSqlStatement(givenStatement);
+        return sqlStatement.executeQuery(givenStatement);
+    }
+    private void setSqlStatement(String givenStatement) {
+        this.sqlStatement = sqlStatement;
     }
 }
 
