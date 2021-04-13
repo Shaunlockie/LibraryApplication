@@ -6,7 +6,6 @@ public class User {
     private String username;
     private String email;
     private LocalDate createdDate;
-    public Collection collection;
 
     // create a new user
     public User() {
