@@ -34,26 +34,35 @@ public class LibraryApp {
         User u = null;
         System.out.println("Input Username");
         String userAccountName = in.next();
-
         try {
             PreparedStatement prepStatement = con.prepareStatement("SELECT * FROM useraccounts WHERE username = (?)");
             prepStatement.setString(1, userAccountName);
             ResultSet r1 = prepStatement.executeQuery();
             if (r1.next()) {
-                u = new User();
-                u.setID(r1.getInt("userID"));
-                u.setUsername(r1.getString("username"));
-                u.setEmail(r1.getString("email"));
-                u.setCreatedDate(r1.getDate("createdDate").toLocalDate());
+                if(r1.getInt("isAdmin") == 0) {
+                    u = new User();
+                    u.setID(r1.getInt("userID"));
+                    u.setUsername(r1.getString("username"));
+                    u.setEmail(r1.getString("email"));
+                    u.setCreatedDate(r1.getDate("createdDate").toLocalDate());
+                    userMenu(u);
+                }else {
+                    u = new Librarian();
+                    u.setID(r1.getInt("userID"));
+                    u.setUsername(r1.getString("username"));
+                    u.setEmail(r1.getString("email"));
+                    u.setCreatedDate(r1.getDate("createdDate").toLocalDate());
+                    adminMenu(u);
+                }
                 System.out.println("Welcome: " + u.getUsername());
                 loggedIn = true;
-                userMenu(u);
             }
 
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
         return u;
+
     }
 
     public User createUser() throws SQLException{
@@ -97,9 +106,9 @@ public class LibraryApp {
 
 
     public void userMenu(User u) throws SQLException, IOException, ClassNotFoundException {
+        System.out.println("Welcome user " + u.getUsername());
         System.out.println("What would you like to do?: ");
-        System.out.println("1. Create a new collection");
-        System.out.println("2. View all collections - Currently only adding");
+        System.out.println("1. Add a new book");
         System.out.println("3. Settings");
         System.out.println("4. logout");
         int input = readInt("->", 4);
@@ -117,8 +126,48 @@ public class LibraryApp {
             LogoutUser();
             programLoop(u);
         }
+    }
+        public void adminMenu(User u) throws SQLException, IOException, ClassNotFoundException {
+            System.out.println("Welcome Admin " + u.getUsername());
+            System.out.println("What would you like to do?: ");
+            System.out.println("1. Add a new book");
+            System.out.println("3. Settings");
+            System.out.println("4. logout");
+            int input = readInt("->", 4);
+            if (input == 1) {
+                newBook(u);
+            }
+            if (input == 2) {
+                //retrieveCollections(u);
+                loadCollection(u);
+            }
+            if (input == 3) {
+                settingsMenu(u);
+            }
+            if (input == 4) {
+                LogoutUser();
+                programLoop(u);
+            }
 
     }
+
+    private Book newBook(User u) throws SQLException, IOException, ClassNotFoundException {
+        Book b = new Book();
+        b.createBook();
+        PreparedStatement prepStatement = con.prepareStatement("insert into books (bookTitle, bookSeries, bookAuthor, bookPageCount, bookPublicationDate, bookISBN)" + "values (?,?,?,?,?,?)");
+        prepStatement.setString(1,b.getBookTitle());
+        prepStatement.setString(2, b.getBookSeries());
+        prepStatement.setString(3, b.getBookAuthor());
+        prepStatement.setInt(4, b.getBookPageCount());
+        prepStatement.setDate(5, Date.valueOf(b.getBookPublicationDate()));
+        prepStatement.setLong(6, b.getBookISBN());
+        prepStatement.executeUpdate();
+        b.showBookInfo();
+        adminMenu(u);
+        return b;
+    }
+
+
     public Collection newCollection(User u) throws SQLException, IOException, ClassNotFoundException {
         Collection col = new Collection();
         col.createCollection();
@@ -230,7 +279,7 @@ public class LibraryApp {
         }
     }
 
-    public void LogoutUser() throws SQLException {
+    public void LogoutUser(){
         loggedIn = false;
         System.out.println("You are now logged out");
     }
@@ -243,7 +292,7 @@ public class LibraryApp {
         prepStatement.setString(1,newUsername);
         prepStatement.setInt(2, updateID);
         prepStatement.executeUpdate();
-        System.out.println("Username changed!  ");
+        System.out.println("Username changed!");
         userMenu(u);
     }
     private void changeEmail(User u) throws SQLException, IOException, ClassNotFoundException {
@@ -254,7 +303,7 @@ public class LibraryApp {
         prepStatement.setString(1,newEmail);
         prepStatement.setInt(2, updateID);
         prepStatement.executeUpdate();
-        System.out.println("Email changed!  ");
+        System.out.println("Email changed!");
         userMenu(u);
     }
     public Collection retrieveCollections(User u) throws SQLException, IOException, ClassNotFoundException {
@@ -272,37 +321,6 @@ public class LibraryApp {
         }
         return col;
     }
-    /*public void serializeCollectionArray(User u, Collection col){
-        byte[] data = null;
-        int userID = u.getID();
-        String collName = col.getName();
-        String collDesc = col.getDesc();
-        LocalDate collCreatedDate = LocalDate.now();
-        try{
-            ByteArrayOutputStream byteColl = new ByteArrayOutputStream();
-            ObjectOutputStream objColl = new ObjectOutputStream(byteColl);
-            objColl.writeObject(col.getBookArray());
-            data = byteColl.toByteArray();
-            objColl.flush();
-            objColl.close();
-            byteColl.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try{
-            PreparedStatement prepStatement = con.prepareStatement("insert into bookcollections (userID,collectionName,collectionDesc,collectionCreatedDate,collectionSerialize)" + "values (?,?,?,?,?)");
-            prepStatement.setInt(1, userID);
-            prepStatement.setString(2, collName);
-            prepStatement.setString(3,collDesc);
-            prepStatement.setDate(4, Date.valueOf(collCreatedDate));
-            prepStatement.setBytes(5, data);
-            prepStatement.executeUpdate();
-
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-    }*/
     public ResultSet makeQuery(String givenStatement) throws SQLException {
         setSqlStatement(givenStatement);
         return sqlStatement.executeQuery(givenStatement);
