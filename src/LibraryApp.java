@@ -2,8 +2,7 @@ import java.io.*;
 import java.sql.*;
 import java.sql.DriverManager;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class LibraryApp {
@@ -13,7 +12,7 @@ public class LibraryApp {
     //private final List<Collection> userCollections = new ArrayList<Collection>();
     private Statement sqlStatement;
 
-    Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/librarydatabase", "root","password");
+    Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/librarydatabase", "root", "password");
 
     public LibraryApp() throws SQLException, ClassNotFoundException {
         isRunning = true;
@@ -21,11 +20,12 @@ public class LibraryApp {
         Class.forName("com.mysql.cj.jdbc.Driver");
         this.sqlStatement = con.createStatement();
     }
+
     public void programLoop(User u) throws SQLException, IOException, ClassNotFoundException {
         while (isRunning && !loggedIn) {
             mainMenu(u);
-            }
-        while(isRunning && loggedIn) {
+        }
+        while (isRunning && loggedIn) {
             userMenu(u);
         }
     }
@@ -39,14 +39,14 @@ public class LibraryApp {
             prepStatement.setString(1, userAccountName);
             ResultSet r1 = prepStatement.executeQuery();
             if (r1.next()) {
-                if(r1.getInt("isAdmin") == 0) {
+                if (r1.getInt("isAdmin") == 0) {
                     u = new User();
                     u.setID(r1.getInt("userID"));
                     u.setUsername(r1.getString("username"));
                     u.setEmail(r1.getString("email"));
                     u.setCreatedDate(r1.getDate("createdDate").toLocalDate());
                     userMenu(u);
-                }else {
+                } else {
                     u = new Librarian();
                     u.setID(r1.getInt("userID"));
                     u.setUsername(r1.getString("username"));
@@ -65,11 +65,11 @@ public class LibraryApp {
 
     }
 
-    public User createUser() throws SQLException{
+    public User createUser() throws SQLException {
         User u = new User();
         PreparedStatement prepStatement = con.prepareStatement("insert into userAccounts (username,email,createdDate)" + "values (?,?,?)");
-        prepStatement.setString(1,u.getUsername());
-        prepStatement.setString(2,u.getEmail());
+        prepStatement.setString(1, u.getUsername());
+        prepStatement.setString(2, u.getEmail());
         prepStatement.setDate(3, Date.valueOf(u.getCreatedDate()));
         prepStatement.executeUpdate();
         return u;
@@ -77,10 +77,10 @@ public class LibraryApp {
 
     public void viewUsers() throws SQLException {
         ResultSet result = makeQuery("SELECT * FROM userAccounts");
-        while(result.next()) {
+        while (result.next()) {
             System.out.println(result.getString("username"));
         }
-        }
+    }
 
     public void mainMenu(User u) throws SQLException {
         clearConsole();
@@ -101,14 +101,15 @@ public class LibraryApp {
         }
         if (input == 4) {
             System.exit(1);
-            }
         }
+    }
 
 
     public void userMenu(User u) throws SQLException, IOException, ClassNotFoundException {
         System.out.println("Welcome user " + u.getUsername());
         System.out.println("What would you like to do?: ");
         System.out.println("1. Add a new book");
+        System.out.println("2. View Collections");
         System.out.println("3. Settings");
         System.out.println("4. logout");
         int input = readInt("->", 4);
@@ -120,38 +121,86 @@ public class LibraryApp {
             loadCollection(u);
         }
         if (input == 3) {
-            settingsMenu(u);
+            userSettingsMenu(u);
         }
         if (input == 4) {
             LogoutUser();
             programLoop(u);
         }
     }
+
         public void adminMenu(User u) throws SQLException, IOException, ClassNotFoundException {
             System.out.println("Welcome Admin " + u.getUsername());
             System.out.println("What would you like to do?: ");
             System.out.println("1. Add a new book");
-            System.out.println("3. Settings");
-            System.out.println("4. logout");
-            int input = readInt("->", 4);
+            System.out.println("2. Edit an existing book");
+            System.out.println("3. Remove book from system");
+            System.out.println("4. Settings");
+            System.out.println("5. logout");
+            int input = readInt("->", 5);
             if (input == 1) {
                 newBook(u);
             }
             if (input == 2) {
-                //retrieveCollections(u);
-                loadCollection(u);
+               editBook(u);
             }
-            if (input == 3) {
-                settingsMenu(u);
+            if(input == 3) {
+                deleteBook(u);
             }
             if (input == 4) {
+                userSettingsMenu(u);
+            }
+            if (input == 5) {
                 LogoutUser();
                 programLoop(u);
             }
 
     }
 
-    private Book newBook(User u) throws SQLException, IOException, ClassNotFoundException {
+    private void editBook(User u) throws SQLException, IOException, ClassNotFoundException {
+        in.nextLine();
+        System.out.println("Which book do you want to edit?: ");
+        String bookEdit = in.nextLine();
+
+        System.out.println("Enter the name of the book: ");
+        String bookTitle = in.nextLine();
+
+        System.out.println("Enter the series the book is apart of");
+        String bookSeries = in.nextLine();
+
+        System.out.println("Enter the author of the book");
+        String bookAuthor = in.nextLine();
+
+        System.out.println("Enter the placement of the book in its series");
+        int bookSeriesNum = in.nextInt();
+
+        System.out.println("Enter the page count of the book");
+        int bookPageCount = in.nextInt();
+
+        System.out.println("Enter the publication date of the book 'YYYY-MM-DD'");
+        String inputtedDate = in.next();
+        LocalDate bookPublicationDate = LocalDate.parse(inputtedDate);
+
+        System.out.println("Enter the ISBN of the book");
+        long bookISBN = in.nextLong();
+
+
+        PreparedStatement prepStatement = con.prepareStatement("update books set bookTitle=? ,bookSeries=?, bookSeriesNum=?,bookAuthor=?,bookPageCount=?,bookPublicationDate=?,bookISBN=? where bookTitle=?");
+        prepStatement.setString(1,bookTitle);
+        prepStatement.setString(2,bookSeries);
+        prepStatement.setInt(3, bookSeriesNum);
+        prepStatement.setString(4, bookAuthor);
+        prepStatement.setInt(5, bookPageCount);
+        prepStatement.setDate(6, Date.valueOf(bookPublicationDate));
+        prepStatement.setLong(7, bookISBN);
+        prepStatement.setString(8, bookEdit);
+
+        prepStatement.executeUpdate();
+        System.out.println("Book Changed!");
+        userMenu(u);
+    }
+
+    private void newBook(User u) throws SQLException, IOException, ClassNotFoundException {
         Book b = new Book();
         b.createBook();
         PreparedStatement prepStatement = con.prepareStatement("insert into books (bookTitle, bookSeries, bookAuthor, bookPageCount, bookPublicationDate, bookISBN)" + "values (?,?,?,?,?,?)");
@@ -164,10 +213,20 @@ public class LibraryApp {
         prepStatement.executeUpdate();
         b.showBookInfo();
         adminMenu(u);
-        return b;
     }
 
+    private void deleteBook(User u) throws SQLException, IOException, ClassNotFoundException {
+        PreparedStatement prepStatement = con.prepareStatement("delete from books where bookTitle=?");
+        System.out.println("Enter the book you wish to delete:");
+        in.nextLine();
+        String bookTitle = in.nextLine();
+        prepStatement.setString(1,bookTitle);
+        prepStatement.executeUpdate();
+        System.out.println("");
+        System.out.println("Book has been deleted");
+        adminMenu(u);
 
+    }
     public Collection newCollection(User u) throws SQLException, IOException, ClassNotFoundException {
         Collection col = new Collection();
         col.createCollection();
@@ -244,10 +303,11 @@ public class LibraryApp {
         prepStatement.setInt(3, b.getBookID());
         prepStatement.executeUpdate();
     }
-    public void settingsMenu(User u) throws SQLException, IOException, ClassNotFoundException {
+    public void userSettingsMenu(User u) throws SQLException, IOException, ClassNotFoundException {
         System.out.println("Settings:");
         System.out.println("2. Change Username");
         System.out.println("2. Change Email");
+        System.out.println("3. Delete account");
         System.out.println("3. Go back");
         int input = readInt("->", 4);
         if (input == 1){
@@ -255,8 +315,18 @@ public class LibraryApp {
         }if (input == 2){
             changeEmail(u);
         }if(input == 3){
+            deleteUser(u);
+        }
+        if(input == 4){
             userMenu(u);
         }
+    }
+
+    private void deleteUser(User u) throws SQLException {
+        PreparedStatement prepStatement = con.prepareStatement("delete from books where bookTitle=?");
+        int userToDelete = u.getID();
+        prepStatement.setInt(1,userToDelete);
+        prepStatement.executeUpdate();
     }
 
     public static int readInt(String prompt, int userChoices) {
